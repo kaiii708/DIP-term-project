@@ -67,7 +67,8 @@ def HOG(img,win_size):
                     bins[7]+=((160-o)*g/20)
                     bins[8]+=((o-140)*g/20)
                 elif 160<=o<180:
-                    bins[8]+=g
+                    bins[8]+=((180-o)*g/20)
+                    bins[0]+=((o-160)*g/20)
             max_hog=max(bins)
             res[i][j]=G_pad[i][j]/max_hog
     return res[pad_size:pad_size+height,pad_size:pad_size+width]
