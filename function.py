@@ -3,6 +3,7 @@ import numpy as np
 from numpy import unravel_index
 from matplotlib import pyplot as plt
 import math
+import string
 
 # energy function
 # gray_scale
@@ -12,28 +13,71 @@ def L1_norm(g_r,g_c):
 def L2_norm(g_r,g_c):
     return math.hypot(g_r,g_c)
 
-def entropy(img,win_size):
-    height,width=img.shape
-    pad_size = win_size//2
-    pad_img = np.pad(img,(pad_size,pad_size),'edge')
-    E=np.zeros(pad_img.shape)
-    for i in range(pad_size,pad_size+height):
-        for j in range(pad_size,pad_size+width):
-            window = pad_img[i-pad_size:i+pad_size+1,j-pad_size:j+pad_size+1]
-            hist,bins = np.histogram(window.ravel(),256,[0,256])
-            pdf = hist/window.size
-            pdf=-pdf*math.log2(pdf)
-            e=pdf.sum()
-            E[i][j]=e
-    return E[pad_size:pad_size+height,pad_size:pad_size+width]
+def entropy(_img: np.ndarray, window_size: int) -> np.ndarray:
+    """get_entropy
+    Input:
+    - _img: input image; it won't be changed inside this function
+    - window_size: window size; it should be an odd number
+    Output:
+    - entropy map: calculate the entropy of each window and fill the value in the corrsponding cell.
+    """
+    # Check whether window_size is odd
+    if (window_size % 2 == 0):
+        raise ValueError("window_size should be an odd number.")
+
+    # Pad the image and store it as a new image
+    pad_width = int(window_size / 2)
+    img = np.pad(_img, (pad_width, pad_width), 'edge')
+
+    # Create an entropy map
+    entropy_map = np.zeros(_img.shape, dtype = np.float32)
+
+    # Start to calculate entropy values
+    for i in range(_img.shape[0]):
+        for j in range(_img.shape[1]):
+            window = img[i : i + window_size, j : j + window_size] # obtain the overlapping region
+            _, counts = np.unique(window, return_counts = True) # get the counts of each intensity value
+            p = counts / (window_size * window_size) # calculate p(x_i)
+            entropy_map[i, j] = -np.sum(np.log2(p) * p) # plug in the entropy function
+    
+    return entropy_map
+
+def get_entropy(_img: np.ndarray, window_size: int) -> np.ndarray:
+    """get_entropy
+    Input:
+    - _img: input image; it won't be changed inside this function
+    - window_size: window size; it should be an odd number
+    Output:
+    - entropy map: calculate the entropy of each window and fill the value in the corrsponding cell.
+    """
+    # Check whether window_size is odd
+    if (window_size % 2 == 0):
+        raise ValueError("window_size should be an odd number.")
+
+    # Pad the image and store it as a new image
+    pad_width = int(window_size / 2)
+    img = np.pad(_img, (pad_width, pad_width), 'edge')
+
+    # Create an entropy map
+    entropy_map = np.zeros(_img.shape, dtype = np.float32)
+
+    # Start to calculate entropy values
+    for i in range(_img.shape[0]):
+        for j in range(_img.shape[1]):
+            window = img[i : i + window_size, j : j + window_size] # obtain the overlapping region
+            _, counts = np.unique(window, return_counts = True) # get the counts of each intensity value
+            p = counts / (window_size * window_size) # calculate p(x_i)
+            entropy_map[i, j] = -np.sum(np.log2(p) * p) # plug in the entropy function
+    
+    return entropy_map
 
 def HOG(img,win_size):
     height,width=img.shape
-    G,O=gradient_magntitue_and_orientation(img,2,2)
+    G,O=gradient_magntitue_and_orientation(img,2,1)
     pad_size = win_size//2
     G_pad = np.pad(G,(pad_size,pad_size),'edge')
     O_pad = np.pad(O,(pad_size,pad_size),'edge')
-    res = np.zeros(G.pad_shape)
+    res = np.zeros(G_pad.shape)
     for i in range(pad_size,pad_size+height):
         for j in range(pad_size,pad_size+width):
             G_window = G_pad[i-pad_size:i+pad_size+1,j-pad_size:j+pad_size+1].ravel()
@@ -42,6 +86,8 @@ def HOG(img,win_size):
             for k in range(0,pow(win_size,2)):
                 g=G_window[k]
                 o=O_window[k]
+                if -180<=o<0:
+                    o+=180
                 if 0<=o<20:
                     bins[0]+=((20-o)*g/20)
                     bins[1]+=((o-0)*g/20)
@@ -70,6 +116,8 @@ def HOG(img,win_size):
                     bins[8]+=((180-o)*g/20)
                     bins[0]+=((o-160)*g/20)
             max_hog=max(bins)
+            if max_hog == 0:
+                max_hog=1
             res[i][j]=G_pad[i][j]/max_hog
     return res[pad_size:pad_size+height,pad_size:pad_size+width]
 
@@ -117,3 +165,20 @@ def convolution(img,kernel):
             window=window[::-1,::-1]
             G[i,j]=(window*kernel).sum()
     return G[pad_size:pad_size+height,pad_size:pad_size+width]
+
+# mode: L1-norm:"L1", L2-norm:"L2", entropy:"entropy", HOG:"HOG"
+# For unused parameters, you can fill in any value. eg: no window size parameter for L1/L2-norm
+def energy_function(img: np.ndarray,mode: string ,window_size:int):
+    if mode == 'L1':
+        G,_ = gradient_magntitue_and_orientation(img,2,1)
+        return G
+    elif mode == 'L2':
+        G,_ = gradient_magntitue_and_orientation(img,2,2)
+        return G
+    elif mode == 'entropy':
+        return get_entropy(img,window_size)
+    elif mode == "HOG":
+        return HOG(img,window_size)
+    else:
+        print(f"error:There is no option for this mode.")
+        return
