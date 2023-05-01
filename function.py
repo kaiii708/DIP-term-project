@@ -42,35 +42,6 @@ def entropy(_img: np.ndarray, window_size: int) -> np.ndarray:
     
     return entropy_map
 
-def get_entropy(_img: np.ndarray, window_size: int) -> np.ndarray:
-    """get_entropy
-    Input:
-    - _img: input image; it won't be changed inside this function
-    - window_size: window size; it should be an odd number
-    Output:
-    - entropy map: calculate the entropy of each window and fill the value in the corrsponding cell.
-    """
-    # Check whether window_size is odd
-    if (window_size % 2 == 0):
-        raise ValueError("window_size should be an odd number.")
-
-    # Pad the image and store it as a new image
-    pad_width = int(window_size / 2)
-    img = np.pad(_img, (pad_width, pad_width), 'edge')
-
-    # Create an entropy map
-    entropy_map = np.zeros(_img.shape, dtype = np.float32)
-
-    # Start to calculate entropy values
-    for i in range(_img.shape[0]):
-        for j in range(_img.shape[1]):
-            window = img[i : i + window_size, j : j + window_size] # obtain the overlapping region
-            _, counts = np.unique(window, return_counts = True) # get the counts of each intensity value
-            p = counts / (window_size * window_size) # calculate p(x_i)
-            entropy_map[i, j] = -np.sum(np.log2(p) * p) # plug in the entropy function
-    
-    return entropy_map
-
 def HOG(img,win_size):
     height,width=img.shape
     G,O=gradient_magntitue_and_orientation(img,2,1)
@@ -176,7 +147,7 @@ def energy_function(img: np.ndarray,mode: string ,window_size:int):
         G,_ = gradient_magntitue_and_orientation(img,2,2)
         return G
     elif mode == 'entropy':
-        return get_entropy(img,window_size)
+        return entropy(img,window_size)
     elif mode == "HOG":
         return HOG(img,window_size)
     else:
