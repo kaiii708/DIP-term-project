@@ -154,13 +154,13 @@ def energy_function(img: np.ndarray,mode: string ,window_size:int):
         print(f"error:There is no option for this mode.")
         return
         
-# for "vertical seam":remove_orient='v', for "horizontal seam":remove_orient='h'
-def find_seam_1d(energy_map:np.ndarray, seam_num:int, remove_orient:string):
+# for "vertical seam":seam_orient='v', for "horizontal seam":seam_orient='h'
+def find_seam_1d(energy_map:np.ndarray, seam_num:int, seam_orient:string):
     height,width = energy_map.shape
     min_E = np.zeros((height,width))
     min_O = np.zeros((height,width))
     seam_map = np.zeros((height,width))
-    if remove_orient == 'v':
+    if seam_orient == 'v':
         min_E[0][:]=energy_map[0][:]
         min_O[0][:]=-1
         for i in range(1,height):
@@ -179,7 +179,7 @@ def find_seam_1d(energy_map:np.ndarray, seam_num:int, remove_orient:string):
                     ancestor[2]=min_E[i-1][j+1]
                 min_E[i][j]=min(ancestor.values())+e
                 min_O[i][j]=min(ancestor,key=ancestor.get)
-    elif remove_orient == 'h':
+    elif seam_orient == 'h':
         min_E[:][0]=energy_map[:][0]
         min_O[:][0]=-1
         for j in range(1,width):
@@ -199,7 +199,7 @@ def find_seam_1d(energy_map:np.ndarray, seam_num:int, remove_orient:string):
                 min_E[i][j]=min(ancestor.values())+e
                 min_O[i][j]=min(ancestor,key=ancestor.get)
     smallest_k=np.array([(x,float('inf')) for x in range(seam_num)],dtype=[('index','<i4'),('total_energy','<f4')])
-    if remove_orient == 'v':
+    if seam_orient == 'v':
         for j in range(width):
             for k in range(seam_num):
                 if min_E[height-1][j] < smallest_k['total_energy'][k]:
@@ -213,7 +213,7 @@ def find_seam_1d(energy_map:np.ndarray, seam_num:int, remove_orient:string):
                     j-=1
                 elif min_O[i][j]==2:
                     j+=1
-    elif remove_orient == 'h':
+    elif seam_orient == 'h':
         for i in range(height):
             for k in range(seam_num):
                 if min_E[i][width-1] < smallest_k['total_energy'][k]:
