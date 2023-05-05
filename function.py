@@ -180,8 +180,8 @@ def find_seam_1d(energy_map:np.ndarray, seam_num:int, seam_orient:string):
                 min_E[i][j]=min(ancestor.values())+e
                 min_O[i][j]=min(ancestor,key=ancestor.get)
     elif seam_orient == 'h':
-        min_E[:][0]=energy_map[:][0]
-        min_O[:][0]=-1
+        min_E.transpose()[0][:]=energy_map.transpose()[0][:]
+        min_O.transpose()[0][:]=-1
         for j in range(1,width):
             for i in range(0,height):
                 e=energy_map[i][j]
