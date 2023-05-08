@@ -1,7 +1,8 @@
 # energy function
-# gray_scale
+
 import numpy as np
 import math
+import cv2
 
 def L1_norm(g_r,g_c):
     return abs(g_r)+abs(g_c)
@@ -136,15 +137,19 @@ def gradient_magntitue_and_orientation(img,K,norm):
 # mode: L1-norm:"L1", L2-norm:"L2", entropy:"entropy", HOG:"HOG"
 # For unused parameters, you can fill in any value. eg: no window size parameter for L1/L2-norm
 def energy_function(img: np.ndarray,mode: str ,window_size:int) -> np.ndarray:
+
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     if mode == 'L1':
-        G,_ = gradient_magntitue_and_orientation(img,2,1)
+        G,_ = gradient_magntitue_and_orientation(gray_img,2,1)
         return G
     elif mode == 'L2':
-        G,_ = gradient_magntitue_and_orientation(img,2,2)
+        G,_ = gradient_magntitue_and_orientation(gray_img,2,2)
         return G
     elif mode == 'entropy':
-        return entropy(img,window_size)
+        return entropy(gray_img,window_size)
     elif mode == "HOG":
-        return HOG(img,window_size)
+        return HOG(gray_img,window_size)
     else:
         raise ValueError(f"error:There is no option for this mode.")
+    
