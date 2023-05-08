@@ -42,6 +42,22 @@ def entropy(_img: np.ndarray, window_size: int) -> np.ndarray:
     
     return entropy_map
 
+def HOG(img: np.ndarray, win_size: int) -> np.ndarray:
+    height, width = img.shape
+    pad_size = win_size // 2
+
+    G, O = gradient_magntitue_and_orientation(img, 2, 1)
+    G_pad = np.pad(G,(pad_size,pad_size),'edge')
+    O_pad = np.pad(O,(pad_size,pad_size),'edge')
+
+    res = np.zeros(G_pad.shape)
+
+    for i in range(pad_size, pad_size + height):
+        for j in range(pad_size, pad_size + height):
+            G_window = G_pad[i-pad_size:i+pad_size+1,j-pad_size:j+pad_size+1].ravel()
+            O_window = O_pad[i-pad_size:i+pad_size+1,j-pad_size:j+pad_size+1].ravel()
+            bins=[0 for i in range(9)]            
+
 def HOG(img,win_size):
     height,width=img.shape
     G,O=gradient_magntitue_and_orientation(img,2,1)
@@ -155,7 +171,7 @@ def energy_function(img: np.ndarray,mode: string ,window_size:int):
         return
         
 # for "vertical seam":seam_orient='v', for "horizontal seam":seam_orient='h'
-def find_seam_1d(energy_map:np.ndarray, seam_num:int, seam_orient:string):
+def find_seam_1d(energy_map:np.ndarray, seam_num:int, seam_orient:str):
     height,width = energy_map.shape
     min_E = np.zeros((height,width))
     min_O = np.zeros((height,width))
