@@ -1,7 +1,7 @@
 import numpy as np
 
 # for "vertical seam":seam_orient='v', for "horizontal seam":seam_orient='h'
-def find_seam_1d(energy_map:np.ndarray, seam_num:int, seam_orient:str):
+def find_seam(energy_map:np.ndarray, seam_num:int, seam_orient:str) -> np.ndarray:
     height,width = energy_map.shape
     min_E = np.zeros((height,width))
     min_O = np.zeros((height,width))
