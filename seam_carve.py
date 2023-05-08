@@ -43,7 +43,7 @@ def seam_carve(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, 
         seam_num = np.abs(new_h - ori_h) if (new_h - ori_h != 0) else np.abs(new_w - ori_w)       
         seam_orient = "h" if new_h != ori_h else "v"
 
-        if (new_h < ori_h or new_w < ori_w) # 縮小
+        if (new_h < ori_h or new_w < ori_w): # 縮小
             seam_img = seam_removal(img, seam_num, seam_orient, energy_mode, energy_window)
         else: # 放大
             seam_img = seam_insertion(img, seam_num, seam_orient, energy_mode, energy_window)
