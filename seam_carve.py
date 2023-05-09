@@ -13,11 +13,12 @@ def seam_carve(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, 
     - energy_mode: 用於 energy_function, 可選擇 'L1', 'L2', 'entropy', 'HOG'
     - window_size: 窗格大小，只有在 mode 為 entropy 或是 HOG 時作用
     Output:
-    - new_img: 更改大小後的圖片"""
+    - new_img: 更改大小後的圖片 (3 channel)
+    """
 
     ### 紀錄原圖與新圖的高與寬 ###
     ori_h, ori_w, _ = img.shape
-    new_h, new_w, _ = new_shape
+    new_h, new_w = new_shape
 
     ### 根據大小決定要呼叫的函數 ###
     if(ori_h != new_h and ori_w != new_w): # 兩個維度皆改變：將圖片以 max{(新_高 / 舊_高), (新_寬 / 舊_寬)} 作為倍數縮放，接著進行 seam_removal
