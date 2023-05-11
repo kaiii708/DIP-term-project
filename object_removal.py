@@ -3,6 +3,51 @@ import cv2
 from seam_carve import *
 
 MASK_VALUE = -9999999
+FILL_VALUE = 125
+
+def click_event(event, x, y, flags, params) -> None:
+    # 圖片座標為 (y, x)
+    if (event == cv2.EVENT_LBUTTONDOWN): # 按左鍵以決定 mask 範圍
+        pass
+
+def hole_filling(bimg: np.ndarray, start_point: tuple([int, int]), fill_value: int) -> np.ndarray:
+    """hole_filling: 填滿選擇物體
+    Input:
+    - bimg: binary image
+    - start_point: (x, y): 使者者點選的位置
+    - fill_value: 欲填滿的顏色 (1 channel)
+    Output:
+    - filled_image: 被填滿的圖片 (1 channel)
+    """
+    # 覆蓋後的圖片
+    fill_img = bimg.copy()
+
+    # 執行 BFS 演算法
+    start_x, start_y = start_point
+    visited = set()
+    queue = [(start_x, start_y)]
+
+    while queue:
+        x, y = queue.pop(0)
+        if (x, y) in visited:
+            continue
+        visited.add((x, y))
+
+        if(x > 0 and fill_img[x - 1, y] == fill_img[x, y]):
+            queue.append((x - 1, y))
+        if (x < fill_img.shape[0] - 1 and fill_img[x + 1, y] == fill_img[x, y]):
+            queue.append((x + 1, y))
+        if(y > 0 and fill_img[x, y - 1] == fill_img[x, y]):
+            queue.append((x, y - 1))
+        if (y < fill_img.shape[1] - 1 and fill_img[x, y + 1] == fill_img[x, y]):
+            queue.append((x, y + 1))
+
+        fill_img[x, y] = fill_value # 填色
+    
+    return fill_img.astype('uint8')
+
+def set_mask():
+    pass
 
 def object_removal(_img: np.ndarray, mask_img: np.ndarray, energy_mode: str, energy_window: int) -> np.ndarray:
     """object_removal
@@ -54,7 +99,7 @@ def object_removal(_img: np.ndarray, mask_img: np.ndarray, energy_mode: str, ene
         if (seam_orient == "h"):
             seam_map = seam_map[~(seam_map == -1)].reshape(-1, img.shape[1])
         else:
-            seam_map = seam_map[~(seam_map == -1)].reshape(img.shape[0], -1)
+            seam_map = seam_map[~(seam_map == -1)].reshape(img.shape[0],)
 
     ##### Step 3: 進行 seam insertion 使得圖片大小與原圖相同
     ins_img = seam_carve(remove_img, (ori_h, ori_w), energy_mode, energy_window)
