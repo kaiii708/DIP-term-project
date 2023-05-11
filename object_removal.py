@@ -4,7 +4,6 @@ from seam_carve import *
 
 MASK_VALUE = -9999999
 
-
 def object_removal(_img: np.ndarray, mask_img: np.ndarray, energy_mode: str, energy_window: int) -> np.ndarray:
     """object_removal
     Input:
@@ -30,17 +29,33 @@ def object_removal(_img: np.ndarray, mask_img: np.ndarray, energy_mode: str, ene
     img = _img.astype("float64").copy()
 
     ##### Step 2: 進行 seam removal 直至所有需遮罩的元素被移除
+
     # 決定要移除的方向
-    # seam_orient = 'h'
+    seam_orient = 'h' if ori_w < ori_h else 'v' # 若圖片的寬比較長, 則找水平方向的 seam
 
     # 重複執行 seam removal 直至所有遮罩範圍被移除
     while(np.sum(mask_img) > 0): 
-        # energy_map = energy_function(img, energy_mode, energy_window)
-        # seam_map = find_seam(energy_map, 1, seam_orient)
-        # remove_img = np.zeros_like(img)   
-        remove_img = np.zeros_like(img) 
-        pass
-    
+
+        energy_map = energy_function(img, energy_mode, energy_window)
+        seam_map = find_seam(energy_map, 1, seam_orient)
+        remove_img = np.zeros_like(img)   
+
+        # 更新 img
+        seam_map_3 = np.repeat(seam_map, 3, axis = 1)
+        seam_map_3 = seam_map_3.reshape(ori_h, ori_w, 3)
+        np.copyto(img, seam_map_3, where = (seam_map_3 == -1)) # 將 seam map 上為 -1 的數值複製至 img 對應位置（將來會被移除）
+        
+        if (seam_orient == "h"): # 假設是找 horizontal seam，代表是高度有縮減, 而寬度固定
+            img = img[~(img == -1)].reshape(-1, img.shape[1], 3)
+        else: # 反之為寬度有縮減, 而高度固定
+            img = img[~(img == -1)].reshape(img.shape[0], -1, 3) 
+        
+        # 更新 seam map
+        if (seam_orient == "h"):
+            seam_map = seam_map[~(seam_map == -1)].reshape(-1, img.shape[1])
+        else:
+            seam_map = seam_map[~(seam_map == -1)].reshape(img.shape[0], -1)
+
     ##### Step 3: 進行 seam insertion 使得圖片大小與原圖相同
     ins_img = seam_carve(remove_img, (ori_h, ori_w), energy_mode, energy_window)
 
