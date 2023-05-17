@@ -1,11 +1,10 @@
 import cv2
 import numpy as np
-import time
 from tqdm import tqdm
 from energy_function import *
 from find_seam import *
 from remove_seam import *
-
+from show import *
 
 def add_seam(img: np.ndarray,  seam_index: np.ndarray, seam_orient: str):
     """ add_seam
@@ -33,7 +32,6 @@ def add_seam(img: np.ndarray,  seam_index: np.ndarray, seam_orient: str):
                 r = np.average(img[row, col: col + 2, 2])
                 new_img[row, col, :] = img[row, col, :]
                 new_img[row, col + 1, :] = b,g,r
-                # new_img[row, col + 1, :] = [0,0,255]
                 new_img[row, col + 1:, :] = img[row, col:, :]
             else:
                 b = np.average(img[row, col - 1: col + 1, 0])
@@ -41,7 +39,6 @@ def add_seam(img: np.ndarray,  seam_index: np.ndarray, seam_orient: str):
                 r = np.average(img[row, col - 1: col + 1, 2])
                 new_img[row, : col, :] = img[row, : col, :]
                 new_img[row, col, :] = b,g,r
-                # new_img[row, col, :] = [0,0,255]
                 new_img[row, col + 1:, :] = img[row, col:, :]
 
     # Insert horizontal seam
@@ -55,7 +52,6 @@ def add_seam(img: np.ndarray,  seam_index: np.ndarray, seam_orient: str):
                 r = np.average(img[row: row + 2, col, 2])
                 new_img[row, col, :] = img[row, col, :]
                 new_img[row + 1, col, :] = b,g,r
-                # new_img[row + 1, col, :] = [0,0,255]
                 new_img[row + 1:, col, :] = img[row:, col, :]
             else:
                 b = np.average(img[row - 1: row + 1, col, 0])
@@ -63,13 +59,12 @@ def add_seam(img: np.ndarray,  seam_index: np.ndarray, seam_orient: str):
                 r = np.average(img[row - 1: row + 1, col, 2])
                 new_img[: row, col, :] = img[: row, col, :]
                 new_img[row, col, :] = b,g,r
-                # new_img[row, col, :] = [0,0,255]
                 new_img[row + 1:, col, :] = img[row:, col, :]
         
     new_img = new_img.astype('uint8')    
     return new_img
 
-def seam_insertion(img: np.ndarray,  num_insert: int, seam_orient: str, energy_mode: str, energy_window:int):
+def seam_insertion(img: np.ndarray,  num_insert: int, seam_orient: str, energy_mode: str, energy_window:int, show: bool):
     """seam_insertion
     Input:
     - img: 圖片 (3 channel)
@@ -77,28 +72,23 @@ def seam_insertion(img: np.ndarray,  num_insert: int, seam_orient: str, energy_m
     - seam_orient: 找尋的 seam 方向：垂直-'v', 水平-'h'
     - energy_mode: energy function 模式，可以選擇 'L1', 'L2', 'HOG', 'entropy'
     - energy_window: 窗格大小，只有在 HOG, entropy 有用
+    - show: 是否要顯示動畫
     Output:
     - new_img: 插入 seam 以後的圖片 (3 channel)
     """
 
-    seam_records = []
     new_img = img.copy()
 
     print('Calculating the order of removed seams...')
-    for _ in tqdm(range(num_insert)):
-        img = img.astype('uint8')
-        energy_map = energy_function(img, energy_mode, energy_window)   
-        seam_map = find_seam(energy_map, 1, seam_orient)
-        seam_index = np.where(seam_map == -1)[1] if seam_orient == "v" else np.where(seam_map == -1)[0]
-        img = seam_removal(img, 1, seam_orient, energy_mode, energy_window)
-        seam_records.append(seam_index)
+    img, map_records, seam_records = seam_removal(img, num_insert, seam_orient, energy_mode, energy_window, False)
 
-    for _ in range(num_insert):
+    print('Inserting seams...')
+    for _ in tqdm(range(num_insert)):
         seam = seam_records.pop()
+        seam_map = map_records.pop()
         new_img = add_seam(new_img, seam, seam_orient)
+        if show == True: show_seam(new_img, 'insert', seam_map)
         for item in seam_records:
             item[np.where(item >= seam)] += 2
 
     return new_img
-
-
