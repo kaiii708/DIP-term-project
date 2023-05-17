@@ -5,13 +5,14 @@ from energy_function import *
 from remove_seam import *
 from insert_seam import *
 
-def seam_carve(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, energy_window: int) -> np.ndarray:
+def seam_carve(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, energy_window: int, show: bool) -> np.ndarray:
     """seam_carve
     Input:
     - img: 原圖 (3 channel)
     - new_shape: (h, w)
     - energy_mode: 用於 energy_function, 可選擇 'L1', 'L2', 'entropy', 'HOG'
     - window_size: 窗格大小，只有在 mode 為 entropy 或是 HOG 時作用
+    - show: 是否要顯示動畫
     Output:
     - new_img: 更改大小後的圖片 (3 channel)
     """
@@ -38,15 +39,16 @@ def seam_carve(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, 
         ## STEP 2: seam_removal
         seam_num = np.abs(new_h - scale_img.shape[0]) if (new_h - scale_img.shape[0] != 0) else np.abs(new_w - scale_img.shape[1])
         seam_orient = "h" if new_h != scale_img else "v" # 若高度不同，則需要找得是 horizontal seam，反之為 vertical seam
-        seam_img = seam_removal(img, seam_num, seam_orient, energy_mode, energy_window)
+        seam_img, _, _ = seam_removal(img, seam_num, seam_orient, energy_mode, energy_window, show)
 
     else: # 只有一個維度改變
         seam_num = np.abs(new_h - ori_h) if (new_h - ori_h != 0) else np.abs(new_w - ori_w)       
         seam_orient = "h" if new_h != ori_h else "v"
 
         if (new_h < ori_h or new_w < ori_w): # 縮小
-            seam_img = seam_removal(img, seam_num, seam_orient, energy_mode, energy_window)
+            seam_img, _, _ = seam_removal(img, seam_num, seam_orient, energy_mode, energy_window, show)
         else: # 放大
-            seam_img = seam_insertion(img, seam_num, seam_orient, energy_mode, energy_window)
+            seam_img = seam_insertion(img, seam_num, seam_orient, energy_mode, energy_window, show)
 
     return seam_img.astype("uint8")
+
