@@ -29,7 +29,6 @@ def seam_carve(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, 
             if (ratio_h > 1):
                 scale_img = cv2.resize(img, (int(new_h / ori_h * ori_w), new_h), interpolation = cv2.INTER_CUBIC) # 放大建議使用 INTER_CUBIC
             else:
-                print(new_h, int(new_h/ori_h * ori_w))
                 scale_img = cv2.resize(img, (int(new_h / ori_h * ori_w), new_h), interpolation = cv2.INTER_AREA) # 縮小建議使用 INTER_AREA
         else:
             if (ratio_w > 1):
