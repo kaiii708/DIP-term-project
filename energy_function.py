@@ -89,31 +89,85 @@ def HOG(img,win_size):
             res[i][j]=G_pad[i][j]/max_hog
     return res[pad_size:pad_size+height,pad_size:pad_size+width]
 
+
+def forward(im):
+    """
+    Forward energy algorithm as described in "Improved Seam Carving for Video Retargeting"
+    by Rubinstein, Shamir, Avidan.
+
+    Vectorized code adapted from
+    https://github.com/axu2/improved-seam-carving.
+    """
+    h, w = im.shape
+
+    energy = np.zeros((h, w))
+    m = np.zeros((h, w))
+    
+    U = np.roll(im, 1, axis=0)
+    L = np.roll(im, 1, axis=1)
+    R = np.roll(im, -1, axis=1)
+    
+    cU = np.abs(R - L)
+    cL = np.abs(U - L) + cU
+    cR = np.abs(U - R) + cU
+    
+    for i in range(1, h):
+        mU = m[i-1]
+        mL = np.roll(mU, 1)
+        mR = np.roll(mU, -1)
+        
+        mULR = np.array([mU, mL, mR])
+        cULR = np.array([cU[i], cL[i], cR[i]])
+        mULR += cULR
+
+        argmins = np.argmin(mULR, axis=0)
+        m[i] = np.choose(argmins, mULR)
+        energy[i] = np.choose(argmins, cULR)
+
+    return energy
+
 # by sobel, K=2
 # L1-norm:norm=1,L2-norm:norm=2
 def gradient_magntitue_and_orientation(img,K,norm):
-    height,width = img.shape
-    row_grad_mask =np.array([[-1,0,1],[-K,0,K],[-1,0,1]])/(K+2)
-    col_grad_mask =np.array([[1,K,1],[0,0,0],[-1,-K,-1]])/(K+2)
-    kernel_size=row_grad_mask.shape[0]
-    pad_size = kernel_size//2
-    # pad_img = cv2.copyMakeBorder(img,pad_size,pad_size,pad_size,pad_size,cv2.BORDER_REFLECT)
-    pad_img = np.pad(img,(pad_size,pad_size),'edge')
-    G= np.zeros(pad_img.shape)
-    O= np.zeros(pad_img.shape)
-    for i in range(pad_size,pad_size+height):
-        for j in range(pad_size,pad_size+width):
-            window = pad_img[i-pad_size:i+pad_size+1,j-pad_size:j+pad_size+1]
-            g_r = (row_grad_mask*window).sum()
-            g_c = (col_grad_mask*window).sum()
-            if norm == 1:
-                g = L1_norm(g_r,g_c)
-            elif norm == 2:
-                g = L2_norm(g_r,g_c)
-            o = math.degrees(math.atan2(g_c,g_r))
-            G[i,j]=g
-            O[i,j]=o
-    return G[pad_size:pad_size+height,pad_size:pad_size+width],O[pad_size:pad_size+height,pad_size:pad_size+width]
+
+    row_grad_mask = np.array([[-1, 0, 1], [-K, 0, K], [-1, 0, 1]]) / (K + 2)
+    col_grad_mask = np.array([[1, K, 1], [0, 0, 0], [-1, -K, -1]]) / (K + 2)
+
+    grad_x = cv2.filter2D(img, cv2.CV_64F, row_grad_mask, borderType=cv2.BORDER_REFLECT)
+    grad_y = cv2.filter2D(img, cv2.CV_64F, col_grad_mask, borderType=cv2.BORDER_REFLECT)
+
+    gradient_mag = np.sqrt(grad_x ** 2 + grad_y ** 2)
+    gradient_ori = np.degrees(np.arctan2(grad_y, grad_x))
+
+    if norm == 1:
+        gradient_mag /= np.max(np.abs(gradient_mag))
+    elif norm == 2:
+        gradient_mag /= np.sqrt(np.sum(gradient_mag ** 2))
+
+    return gradient_mag, gradient_ori
+
+    # height,width = img.shape
+    # row_grad_mask =np.array([[-1,0,1],[-K,0,K],[-1,0,1]])/(K+2)
+    # col_grad_mask =np.array([[1,K,1],[0,0,0],[-1,-K,-1]])/(K+2)
+    # kernel_size=row_grad_mask.shape[0]
+    # pad_size = kernel_size//2
+    # # pad_img = cv2.copyMakeBorder(img,pad_size,pad_size,pad_size,pad_size,cv2.BORDER_REFLECT)
+    # pad_img = np.pad(img,(pad_size,pad_size),'edge')
+    # G = np.zeros(pad_img.shape)
+    # O = np.zeros(pad_img.shape)
+    # for i in range(pad_size,pad_size+height):
+    #     for j in range(pad_size,pad_size+width):
+    #         window = pad_img[i-pad_size:i+pad_size+1,j-pad_size:j+pad_size+1]
+    #         g_r = (row_grad_mask*window).sum()
+    #         g_c = (col_grad_mask*window).sum()
+    #         if norm == 1:
+    #             g = L1_norm(g_r,g_c)
+    #         elif norm == 2:
+    #             g = L2_norm(g_r,g_c)
+    #         o = math.degrees(math.atan2(g_c,g_r))
+    #         G[i,j]=g
+    #         O[i,j]=o
+    # return G[pad_size:pad_size+height,pad_size:pad_size+width], O[pad_size:pad_size+height,pad_size:pad_size+width]
 
 # def sobel_gradient(img,norm):
 #     K=2
@@ -150,6 +204,8 @@ def energy_function(img: np.ndarray,mode: str ,window_size:int) -> np.ndarray:
         return entropy(gray_img,window_size)
     elif mode == "HOG":
         return HOG(gray_img,window_size)
+    elif mode == 'forward':
+        return forward(gray_img)
     else:
         raise ValueError(f"error:There is no option for this mode.")
     
