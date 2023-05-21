@@ -10,7 +10,7 @@ def seam_removal(_img: np.ndarray, seam_num: int, seam_orient: str, energy_mode:
     - img: 圖片 (3 channel)
     - seam_num: 要移除的 seam 數量
     - seam_orient: 找尋的 seam 方向：垂直-'v', 水平-'h'
-    - energy_mode: energy function 模式，可以選擇 'L1', 'L2', 'HOG', 'entropy'
+    - energy_mode: energy function 模式，可以選擇 'L1', 'L2', 'HOG', 'entropy', 'forward'
     - energy_window: 窗格大小，只有在 HOG, entropy 有用
     - show: 是否要顯示動畫
     Output:

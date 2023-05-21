@@ -10,7 +10,7 @@ def seam_carve(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, 
     Input:
     - img: 原圖 (3 channel)
     - new_shape: (h, w)
-    - energy_mode: 用於 energy_function, 可選擇 'L1', 'L2', 'entropy', 'HOG'
+    - energy_mode: 用於 energy_function, 可選擇 'L1', 'L2', 'entropy', 'HOG', forward
     - window_size: 窗格大小，只有在 mode 為 entropy 或是 HOG 時作用
     - show: 是否要顯示動畫
     Output:

@@ -6,7 +6,7 @@ def content_amp(img: np.ndarray, energy_mode: str, energy_window: int) -> np.nda
     """content amplification
     Input:
     - img: 原圖 (3 channel)
-    - energy_mode: 用於 energy_function, 可選擇 'L1', 'L2', 'entropy', 'HOG'
+    - energy_mode: 用於 energy_function, 可選擇 'L1', 'L2', 'entropy', 'HOG', 'forward'
     - window_size: 窗格大小，只有在 mode 為 entropy 或是 HOG 時作用
     Output:
     - new_img: 圖片 (3 channel)
