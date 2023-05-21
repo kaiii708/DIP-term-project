@@ -20,6 +20,7 @@ def get_mask(img: np.ndarray) -> np.ndarray:
     - mask: 1 channel
     """
    # img = _img.copy()
+    
     cv2.imshow("get mask", img)
     cv2.setMouseCallback('get mask', click_event)
     cv2.waitKey(0)
@@ -45,7 +46,7 @@ def object_removal(_img: np.ndarray, seam_orient: str, energy_mode: str, energy_
     Input:
     - _img: 原圖 (3 channel)
     - seam_orient: 方向, 'h' or 'v'
-    - energy_mode: 'HOG', 'L1', 'L2', 'entropy'
+    - energy_mode: 'HOG', 'L1', 'L2', 'entropy', 'forward'
     - energy_window: 只適用於 HOG, entropy
     Output:
     - new_img: 移除物體以後的圖片
@@ -67,7 +68,6 @@ def object_removal(_img: np.ndarray, seam_orient: str, energy_mode: str, energy_
     # seam_orient = 'h' if ori_w < ori_h else 'v' # 若圖片的寬比較長, 則找水平方向的 seam
 
     while(np.sum(mask) > 0): # 持續執行至所有遮罩範圍都被移除
-        # print(np.sum(mask))
         ### 計算能量值
         energy_map = energy_function(rimg, energy_mode, energy_window)   
         energy_map = np.where(mask == 1, MASK_VALUE, energy_map) # 將遮罩範圍改為 MASK_VALUE
@@ -93,14 +93,9 @@ def object_removal(_img: np.ndarray, seam_orient: str, energy_mode: str, energy_
         else: # 反之為寬度有縮減, 而高度固定
             rimg = rimg[~(rimg == -1)].reshape(rimg.shape[0], -1, 3)
             mask = mask[~(mask == -1)].reshape(mask.shape[0], -1)  
-
-        # cv2.imwrite("object_removal.png", rimg)
     
     # seam insertion
     result_img = seam_carve(rimg, (ori_h, ori_w), energy_mode, energy_window, True)
 
     return result_img
 
-# img = cv2.imread("test.JPG")
-# result_img = object_removal(img, 'v', 'L1', 3)
-# cv2.imwrite("result.png", result_img)
