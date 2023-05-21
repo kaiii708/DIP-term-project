@@ -23,7 +23,7 @@ def crop(img: np.ndarray, new_shape: tuple([int, int])) -> np.ndarray:
 
     cropped_img = img[ori_cen_h - new_cen_h : ori_cen_h + new_cen_h + (new_h % 2), ori_cen_w - new_cen_w : ori_cen_w + new_cen_w +  (new_w % 2)]
 
-    return cropped_img
+    return cropped_img.astype("uint8")
 
 def remove_row_col(img: np.ndarray, new_shape: tuple([int, int]), row_first: bool, energy_mode: str, energy_window: int) -> np.ndarray:
     """remove_row_col: 移除能量總和最小的列或是欄
@@ -98,22 +98,54 @@ def remove_from_each_row_col(img: np.ndarray, new_shape: tuple([int, int]), row_
     row_sort_idx = np.argsort(energy_map, axis = 1) # 由小至大
     col_sort_idx = np.argsort(energy_map, axis = 0)
 
-    # 開始進行移除動作
-    rimg = np.zeros(new_shape)
-    # if (new_h < ori_h and new_w == ori_w): # 假設高度不同，則各欄位取出最小的幾個像素
-    #     for c in range(ori_w):
-    #         cur_col = img[:, c].copy()
-    #         rimg[:, c] = np.delete(cur_col,)
+    rimg = np.zeros((new_h, new_w, 3))
+    if(new_h < ori_h and new_w == ori_w):
+        for c in range(ori_w):
+            remove_idx = col_sort_idx[:, c][:(ori_h - new_h)]
+            cur_col = img[:, c, :].copy()
+            cur_col = np.delete(cur_col, remove_idx, axis = 0)
+            rimg[:,c ,:] = cur_col
+    
+    elif(new_w < ori_w and new_h == ori_h):
+        for r in range(ori_h):
+            remove_idx = row_sort_idx[r, :][:(ori_w - new_w)]
+            cur_row = img[r, :, :].copy()
+            cur_row = np.delete(cur_row, remove_idx, axis = 0)
+            rimg[r,: ,:] = cur_row
 
+    elif(new_h < ori_h and new_w < ori_w and row_first == True):
+        pre_rimg = remove_from_each_row_col(img, (new_h, ori_w), True, energy_mode, energy_window)
+        rimg = remove_from_each_row_col(pre_rimg, (new_h, new_w), True, energy_mode, energy_window)
 
+    elif(new_h < ori_h and new_w < ori_w and row_first == False):
+        pre_rimg = remove_from_each_row_col(img, (ori_h, new_w), False, energy_mode, energy_window)
+        rimg = remove_from_each_row_col(pre_rimg, (new_h, new_w), False, energy_mode, energy_window)
+    else:
+        rimg = img.copy()
 
-img = cv2.imread("mypic.JPG")
-print(img.shape)
+    return rimg.astype("uint8")
 
-rimg = scale(img, (500, 1000))
-print(rimg.shape)
-
-cv2.imshow("img", rimg)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
+def other_resize_method(img: np.ndarray, new_shape: tuple([int, int]), resize_method: str, row_first: bool, energy_mode: str, energy_window: int) -> np.ndarray:
+    """other_resize_method: 其他縮減、放大方式
+    Input:
+    - img: 原圖 (3 channels)
+    - new_shape: (new_h, new_w)
+    - resize_method: 'crop', 'remove_row_col', 'remove_from_each_row_col', 'scale'。只有 scale 適用於放大與縮小，前三者只可以縮減
+    - row_first: 在 remove_row_col, remove_from_each_row_col 有用，指定是否要由列開始處理
+    - energy_mode: 'entropy', 'L1', 'L2', 'HOG', 'entropy', 'forward'
+    - energy_window: 窗格，只適用在 'HOG', 'entropy'
+    Output:
+    - rimg: 改變大小後圖片
+    """    
+    if resize_method == 'crop':
+        rimg = crop(img, new_shape)
+    elif resize_method == 'remove_row_col':
+        rimg = remove_row_col(img, new_shape, row_first, energy_mode, energy_window)
+    elif resize_method == 'remove_from_each_row_col':
+        rimg = remove_row_col(img, new_shape, row_first, energy_mode, energy_window)
+    elif resize_method == 'scale':
+        rimg = scale(img, new_shape)
+    else:
+        raise ValueError("沒有這個指定模式！請選擇：'crop', 'remove_row_col', 'remove_from_each_row_col', 'scale'")
+    
+    return rimg
