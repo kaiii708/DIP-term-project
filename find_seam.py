@@ -151,7 +151,7 @@ def find_1_seam(energy_map:np.ndarray, seam_orient:str) -> np.ndarray:
 # def find_seam_2d(energy_map:np.ndarray, seam_num:int, seam_orient:str) -> np.ndarray:
     
 
-def find_seam_2d_dp(_energy_map:np.ndarray, seam_horizontal:int, seam_vertical:int ) -> tuple(str,np.ndarray):
+def find_seam_2d_dp(_energy_map:np.ndarray, seam_horizontal:int, seam_vertical:int ) -> tuple([str,np.ndarray]):
     energy_map=_energy_map.copy
     T=np.array((seam_horizontal,seam_vertical))
     C=np.array(T.shape)
