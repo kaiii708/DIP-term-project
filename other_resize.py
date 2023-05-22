@@ -2,8 +2,8 @@ import numpy as np
 import cv2
 from energy_function import *
 
-def crop(img: np.ndarray, new_shape: tuple([int, int])) -> np.ndarray:
-    """crop (center): 保留最中心部分
+def crop(img: np.ndarray, new_shape: tuple([int, int]), energy_mode: str, energy_window: int) -> np.ndarray:
+    """crop: 找到能量總和最大的方框
     Input
     - img: 圖片 (3 channels)
     - new_shape: (h, w)
@@ -17,13 +17,19 @@ def crop(img: np.ndarray, new_shape: tuple([int, int])) -> np.ndarray:
     if not (new_h <= ori_h and new_w <= ori_w):
         raise ValueError("裁切後圖片尺寸較小")
 
-    # 得到原圖與新圖的中心
-    ori_cen_h, ori_cen_w = ori_h // 2, ori_w // 2
-    new_cen_h, new_cen_w = new_h // 2, new_w // 2
 
-    cropped_img = img[ori_cen_h - new_cen_h : ori_cen_h + new_cen_h + (new_h % 2), ori_cen_w - new_cen_w : ori_cen_w + new_cen_w +  (new_w % 2)]
+    energy_map = energy_function(img, energy_mode, energy_window)
 
-    return cropped_img.astype("uint8")
+    max_xy = (0, 0)
+    max_energy = 0
+    for i in range(ori_h - new_h):
+        for j in range(ori_w - new_w):
+            energy = energy_map[i : i + new_h, j : j + new_w]
+            if (energy > max_energy):
+                max_xy = (i, j)
+                max_energy = energy
+    
+    return img[max_xy[0] : max_xy[0] + new_h, max_xy[1] : max_xy[1] + new_w].astype("uint8")
 
 def remove_row_col(img: np.ndarray, new_shape: tuple([int, int]), row_first: bool, energy_mode: str, energy_window: int) -> np.ndarray:
     """remove_row_col: 移除能量總和最小的列或是欄
@@ -138,7 +144,7 @@ def other_resize_method(img: np.ndarray, new_shape: tuple([int, int]), resize_me
     - rimg: 改變大小後圖片
     """    
     if resize_method == 'crop':
-        rimg = crop(img, new_shape)
+        rimg = crop(img, new_shape, energy_mode, energy_window)
     elif resize_method == 'remove_row_col':
         rimg = remove_row_col(img, new_shape, row_first, energy_mode, energy_window)
     elif resize_method == 'remove_from_each_row_col':
