@@ -80,15 +80,27 @@ def seam_insertion(img: np.ndarray,  num_insert: int, seam_orient: str, energy_m
     new_img = img.copy()
 
     print('Calculating the order of removed seams...')
-    img, map_records, seam_records = seam_removal(img, num_insert, seam_orient, energy_mode, energy_window, False)
+    img, _, seam_records = seam_removal(img, num_insert, seam_orient, energy_mode, energy_window, False)
 
     print('Inserting seams...')
     for _ in tqdm(range(num_insert)):
         seam = seam_records.pop()
-        seam_map = map_records.pop()
+        points = np.stack((seam, np.arange(0,seam.shape[0],1)), axis=1)
         new_img = add_seam(new_img, seam, seam_orient)
-        if show == True: show_seam(new_img, 'insert', seam_map)
+        map = np.zeros((new_img.shape[0], new_img.shape[1]))
+        for point in points:
+            if seam_orient == 'h':
+                if point[0] >= map.shape[1]: 
+                    map[map.shape[1] - 1, point[1]] = -1
+                else:
+                    map[point[0],point[1]] = -1
+            else:
+                if point[0] >= map.shape[1]: 
+                    map[point[1], map.shape[1] - 1] = -1
+                else:
+                    map[point[1],point[0]] = -1
+        if show == True: show_seam(new_img, 'insert', map)
         for item in seam_records:
-            item[np.where(item >= seam)] += 2
+            item[np.where(item > seam)] += 2
 
     return new_img
