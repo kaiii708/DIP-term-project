@@ -5,7 +5,7 @@ from tqdm import tqdm, trange
 # example:"result,_,_=remove_seam_2d_dp(img,2,2,"L2",0,1)"
 
 # for "vertical seam":seam_orient='v', for "horizontal seam":seam_orient='h'
-def find_1_seam(energy_map:np.ndarray, seam_orient:str) -> np.ndarray:
+def find_1_seam(energy_map:np.ndarray, seam_orient:str) -> tuple([np.ndarray,float]):
     height,width = energy_map.shape
     min_E = np.zeros((height,width))
     min_O = np.zeros((height,width))
@@ -79,7 +79,7 @@ def find_1_seam(energy_map:np.ndarray, seam_orient:str) -> np.ndarray:
 # def find_seam_2d(energy_map:np.ndarray, seam_num:int, seam_orient:str) -> np.ndarray:
     
 
-def find_seam_2d_dp(_energy_map:np.ndarray, seam_horizontal:int, seam_vertical:int ):
+def find_seam_2d_dp(_energy_map:np.ndarray, seam_horizontal:int, seam_vertical:int )->np.ndarray:
     # print(f"energy_map's type:{type(energy_map)}")
     T=np.zeros((seam_horizontal+1,seam_vertical+1))
     # C=np.zeros(T.shape)
@@ -161,7 +161,7 @@ def find_seam_2d_dp(_energy_map:np.ndarray, seam_horizontal:int, seam_vertical:i
         # orient_records.insert(0,C)
     return map_records
 
-def remove_seam_2d_dp(_img: np.ndarray, seam_horizontal:int, seam_vertical:int, energy_mode: str, energy_window: int, show: bool):
+def remove_seam_2d_dp(_img: np.ndarray, seam_horizontal:int, seam_vertical:int, energy_mode: str, energy_window: int, show: bool)->tuple([np.ndarray,list,list]):
     img=_img.copy()
     energy_map = energy_function(img,energy_mode,energy_window) # 計算能量值
     map_records=find_seam_2d_dp(energy_map,seam_horizontal,seam_vertical)
