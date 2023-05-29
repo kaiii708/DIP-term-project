@@ -9,11 +9,31 @@ energy_function.py
 - 我們實作了 Entropy, L1-norm of gradient, L2-norm of gradient, HOG, forward entropy
 
 
-#### **找到 Seam**
+#### 找到 Seam
 find_seam.py
 - 找到單一方向：「水平」或是「垂直」的 Seam
 
 find_seam_2d_dp.py
 - 尋找可「曲折」的 Seam，同作者實作更改二維大小的方法
+
+#### Seam carving 演算法：調整圖片大小
+1. insert_seam.py
+- 實作插入 seam
+
+2.1 remove_seam.py---------------------> 事實上有了 2.2 就不用它了
+- 實作移除 seam
+2.2 object_removal.py
+- 加上保護遮罩以後執行 seam removal
+
+3. seam_carve.py
+- 給定原圖與目標圖片大小以實作 Seam carving 演算法
+- 使用 insert_seam.py, remove_seam.py
+
+#### 放大圖片主體
+content_amplification.py
+- 放大圖片主體
+
+#### 移除
+
 
 
