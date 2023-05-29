@@ -22,6 +22,7 @@ find_seam_2d_dp.py
 
 2.1 remove_seam.py---------------------> 事實上有了 2.2 就不用它了
 - 實作移除 seam
+
 2.2 object_removal.py
 - 加上保護遮罩以後執行 seam removal
 
