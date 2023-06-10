@@ -29,7 +29,7 @@ energy_function.py
 3. seam_carve.py
 - 給定原圖與目標圖片大小以實作 Seam carving 演算法
 - 使用 insert_seam.py, remove_seam.py
-
+- 執行find_seam_2d_dp的話，呼叫remove_seam_2d_dp
 ### 放大圖片主體
 content_amplification.py
 - 放大圖片主體
