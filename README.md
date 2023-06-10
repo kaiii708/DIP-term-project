@@ -20,16 +20,19 @@ energy_function.py
 1. insert_seam.py
 - 實作插入 seam
 
-2.1 remove_seam.py---------------------> 事實上有了 2.2 就不用它了
+2.1 remove_seam.py---------------------> 事實上有了 2.3 就不用它了
 - 實作移除 seam
 
-2.2 object_preservation.py
+2.2 remove_seam_2d_dp.py
+- 實作seam removal by 2d dynamic programming
+
+2.3 object_preservation.py
 - 加上保護遮罩以後執行 seam removal
 
 3. seam_carve.py
 - 給定原圖與目標圖片大小以實作 Seam carving 演算法
 - 使用 insert_seam.py, remove_seam.py
-- 執行find_seam_2d_dp的話，呼叫remove_seam_2d_dp
+
 ### 放大圖片主體
 content_amplification.py
 - 放大圖片主體
